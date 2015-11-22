@@ -1,0 +1,153 @@
+gem5 Simulator System.  http://gem5.org
+gem5 is copyrighted software; use the --copyright option for details.
+
+gem5 compiled Apr 11 2015 14:16:47
+gem5 started Apr 11 2015 14:17:35
+gem5 executing on bigbird
+command line: ./build/ARM/gem5.opt --debug-flags=EnergyCtrl configs/example/haswell.py --machine-type=VExpress_EMM --dtb-filename=vexpress-v2p-ca15-tc1-gem5_dvfs_per_core_4cpus.dtb --kernel=vmlinux.ondemand95.e1000 --mem-size=2048MB --link-delay=25us --switch-link-delay=15us --link-delay-var=0ns --link-speed=230Mbps --tcp-speed=160Mbps --udp-speed=160Mbps --no-ip-speed=160Mbps --link-rate-scale=2 --link-delay-opt=47us --link-delay-queue=47us --link-retry-time=75us --nic-queue-th=50ms --sys-clock=2GHz --cpu-clock=1GHz --num-cpus=4 --tcp-retry-speed=1Gbps --tcp-process-speed=180Mbps --udp-retry-speed=160Mbps --no-ip-retry-speed=160Mbps --tcp-jmp-delay0=55us --tcp-jmp-delay1=130us --tcp-jmp-size0=131 --tcp-jmp-size1=323 --tap-first-delay=1s --checkpoint-restore=1 --eth --cpu-type=arm_detailed --caches --checkpoint-dir=/research/ljindal/alian/gem5/ckptdir/WORKING_PING_NPB_CKPT_5NODES/tux0 --sync-host=128.104.189.79 --mac=00:90:00:00:00:00 --tap-port=3500 --script=tux0.sh --disk-image=/research/ljindal/alian/gem5/disks/NPB/tux0.img
+Global frequency set at 1000000000000 ticks per second
+warn: DRAM device capacity (8192 Mbytes) does not match the address range assigned (2048 Mbytes)
+info: kernel located at: /users/ljindal/pd-gem5/binaries/vmlinux.ondemand95.e1000
+      0: system.cpu0.isa: ISA system set to: 0x5be4680 0x5be4680
+      0: system.cpu1.isa: ISA system set to: 0x5be4680 0x5be4680
+      0: system.cpu2.isa: ISA system set to: 0x5be4680 0x5be4680
+      0: system.cpu3.isa: ISA system set to: 0x5be4680 0x5be4680
+lo= 127.0.0.1
+eth0= 128.104.181.93
+tapport= 3500
+Listening for tap connection on port 3500
+Listening for system connection on port 5900
+Listening for system connection on port 3456
+      0: system.switch_cpus0.isa: ISA system set to: 0x5be4680 0x5be4680
+      0: system.switch_cpus1.isa: ISA system set to: 0x5be4680 0x5be4680
+      0: system.switch_cpus2.isa: ISA system set to: 0x5be4680 0x5be4680
+      0: system.switch_cpus3.isa: ISA system set to: 0x5be4680 0x5be4680
+0: system.remote_gdb.listener: listening for remote gdb #0 on port 7000
+0: system.remote_gdb.listener: listening for remote gdb #1 on port 7002
+0: system.remote_gdb.listener: listening for remote gdb #2 on port 7003
+0: system.remote_gdb.listener: listening for remote gdb #3 on port 7004
+Switch at curTick count:10000
+Switched CPUS @ tick 3966960010000
+switching cpus
+**** REAL SIMULATION ****
+warn: 	instruction 'mcr dcisw' unimplemented
+warn: 	instruction 'mcr icialluis' unimplemented
+warn: 	instruction 'mcr dccimvac' unimplemented
+warn: 	instruction 'mcr bpiall' unimplemented
+PseudoInst::dumpresetstats delay = 1000 period = 20000000
+PseudoInst::dumpresetstats when is (curtick = 3972588879940 + (delay = 1000 * SimClock::Int::ns = 1000))
+PseudoInst::dumpresetstats repeat is (period = 20000000 * SimClock::Int::ns = 1000
+PseudoInst::dumpresetstats when = 3972589879940 and repeat = 20000000000
+processing StatEvent : curtick is 3972589879940 scheduling next dumpevent after repeat = 20000000000
+3980361079000: system.realview.energy_ctrl: writing domain id:1
+3980361295000: system.realview.energy_ctrl: reading domain 1 perf level: 11
+3980362285500: system.realview.energy_ctrl: writing domain id:2
+3980362501500: system.realview.energy_ctrl: reading domain 2 perf level: 13
+3980363362500: system.realview.energy_ctrl: writing domain id:0
+3980363579000: system.realview.energy_ctrl: reading domain 0 perf level: 11
+3980364192000: system.realview.energy_ctrl: writing domain id:1
+3980364409000: system.realview.energy_ctrl: reading domain 1 perf level: 11
+3980365643500: system.realview.energy_ctrl: writing domain id:1
+3980365878000: system.realview.energy_ctrl: writing domain 1 perf level: 6
+3980366094000: system.realview.energy_ctrl: reading ack:0
+3980368468000: system.realview.energy_ctrl: reading ack:0
+3980370693500: system.realview.energy_ctrl: reading ack:0
+3980372916000: system.realview.energy_ctrl: reading ack:0
+3980375138500: system.realview.energy_ctrl: reading ack:0
+3980377361000: system.realview.energy_ctrl: reading ack:0
+3980379598500: system.realview.energy_ctrl: reading ack:0
+3980381821000: system.realview.energy_ctrl: reading ack:0
+3980384043500: system.realview.energy_ctrl: reading ack:0
+3980386265500: system.realview.energy_ctrl: reading ack:0
+3980388488000: system.realview.energy_ctrl: reading ack:0
+3980390726000: system.realview.energy_ctrl: reading ack:0
+3980392948500: system.realview.energy_ctrl: reading ack:0
+3980395170500: system.realview.energy_ctrl: reading ack:0
+3980397393000: system.realview.energy_ctrl: reading ack:0
+3980399615500: system.realview.energy_ctrl: reading ack:0
+3980401837500: system.realview.energy_ctrl: reading ack:0
+3980404075500: system.realview.energy_ctrl: reading ack:0
+3980406298000: system.realview.energy_ctrl: reading ack:0
+3980408520000: system.realview.energy_ctrl: reading ack:0
+3980410742500: system.realview.energy_ctrl: reading ack:0
+3980412965000: system.realview.energy_ctrl: reading ack:0
+3980415202500: system.realview.energy_ctrl: reading ack:0
+3980417425000: system.realview.energy_ctrl: reading ack:0
+3980419647000: system.realview.energy_ctrl: reading ack:0
+3980421869500: system.realview.energy_ctrl: reading ack:0
+3980424092000: system.realview.energy_ctrl: reading ack:0
+3980426330000: system.realview.energy_ctrl: reading ack:0
+3980428552500: system.realview.energy_ctrl: reading ack:0
+3980430775000: system.realview.energy_ctrl: reading ack:0
+3980432997500: system.realview.energy_ctrl: reading ack:0
+3980435220000: system.realview.energy_ctrl: reading ack:0
+3980437442000: system.realview.energy_ctrl: reading ack:0
+3980439680000: system.realview.energy_ctrl: reading ack:0
+3980441902500: system.realview.energy_ctrl: reading ack:0
+3980444124500: system.realview.energy_ctrl: reading ack:0
+3980446347000: system.realview.energy_ctrl: reading ack:0
+3980448569500: system.realview.energy_ctrl: reading ack:0
+3980450807500: system.realview.energy_ctrl: reading ack:0
+3980453030000: system.realview.energy_ctrl: reading ack:0
+3980455252500: system.realview.energy_ctrl: reading ack:0
+3980457475000: system.realview.energy_ctrl: reading ack:0
+3980459697500: system.realview.energy_ctrl: reading ack:0
+3980461920000: system.realview.energy_ctrl: reading ack:0
+3980464158000: system.realview.energy_ctrl: reading ack:0
+3980466387000: system.realview.energy_ctrl: reading ack:1
+3980466737500: system.realview.energy_ctrl: writing domain id:1
+3980466956500: system.realview.energy_ctrl: reading domain 1 perf level: 6
+3980467616000: system.realview.energy_ctrl: writing domain id:0
+3980467832000: system.realview.energy_ctrl: reading domain 0 perf level: 11
+3980468338000: system.realview.energy_ctrl: writing domain id:0
+3980468572500: system.realview.energy_ctrl: writing domain 0 perf level: 14
+3980468788500: system.realview.energy_ctrl: reading ack:0
+3980471072000: system.realview.energy_ctrl: reading ack:0
+3980473294000: system.realview.energy_ctrl: reading ack:0
+3980475520500: system.realview.energy_ctrl: reading ack:0
+3980477735000: system.realview.energy_ctrl: reading ack:0
+3980479961500: system.realview.energy_ctrl: reading ack:0
+3980482188000: system.realview.energy_ctrl: reading ack:0
+3980484414500: system.realview.energy_ctrl: reading ack:0
+3980486641000: system.realview.energy_ctrl: reading ack:0
+3980488867500: system.realview.energy_ctrl: reading ack:0
+3980491093500: system.realview.energy_ctrl: reading ack:0
+3980493320000: system.realview.energy_ctrl: reading ack:0
+3980495546500: system.realview.energy_ctrl: reading ack:0
+3980497773000: system.realview.energy_ctrl: reading ack:0
+3980499999500: system.realview.energy_ctrl: reading ack:0
+3980502211000: system.realview.energy_ctrl: reading ack:0
+3980504437500: system.realview.energy_ctrl: reading ack:0
+3980506664000: system.realview.energy_ctrl: reading ack:0
+3980508890500: system.realview.energy_ctrl: reading ack:0
+3980511118000: system.realview.energy_ctrl: reading ack:0
+3980513345000: system.realview.energy_ctrl: reading ack:0
+3980515571500: system.realview.energy_ctrl: reading ack:0
+3980517798500: system.realview.energy_ctrl: reading ack:0
+3980520025000: system.realview.energy_ctrl: reading ack:0
+3980522252000: system.realview.energy_ctrl: reading ack:0
+3980524463500: system.realview.energy_ctrl: reading ack:0
+3980526690000: system.realview.energy_ctrl: reading ack:0
+3980528917000: system.realview.energy_ctrl: reading ack:0
+3980531143500: system.realview.energy_ctrl: reading ack:0
+3980533370000: system.realview.energy_ctrl: reading ack:0
+3980535597000: system.realview.energy_ctrl: reading ack:0
+3980537823500: system.realview.energy_ctrl: reading ack:0
+3980540050000: system.realview.energy_ctrl: reading ack:0
+3980542277000: system.realview.energy_ctrl: reading ack:0
+3980544503500: system.realview.energy_ctrl: reading ack:0
+3980546718000: system.realview.energy_ctrl: reading ack:0
+3980548945000: system.realview.energy_ctrl: reading ack:0
+3980551171500: system.realview.energy_ctrl: reading ack:0
+3980553398500: system.realview.energy_ctrl: reading ack:0
+3980555625000: system.realview.energy_ctrl: reading ack:0
+3980557851500: system.realview.energy_ctrl: reading ack:0
+3980560078500: system.realview.energy_ctrl: reading ack:0
+3980562305000: system.realview.energy_ctrl: reading ack:0
+3980564516500: system.realview.energy_ctrl: reading ack:0
+3980566743000: system.realview.energy_ctrl: reading ack:0
+3980569010000: system.realview.energy_ctrl: reading ack:1
+3980569563000: system.realview.energy_ctrl: writing domain id:0
+3980569799000: system.realview.energy_ctrl: reading domain 0 perf level: 14
+processing StatEvent : curtick is 3992589879940 scheduling next dumpevent after repeat = 20000000000
+processing StatEvent : curtick is 4012589879940 scheduling next dumpevent after repeat = 20000000000
