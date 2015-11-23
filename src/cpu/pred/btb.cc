@@ -57,6 +57,8 @@ DefaultBTB::DefaultBTB(unsigned _numEntries,
     tagMask = (1 << tagBits) - 1;
 
     tagShiftAmt = instShiftAmt + floorLog2(numEntries);
+
+	std::cout << "BTBPRINT _numEntries:" << _numEntries << " _tagBits:" << _tagBits << " _instShiftAmt:" << _instShiftAmt << " idxMask:" << idxMask << " tagMask:" << tagMask <<     " tagShiftAmt:" << tagShiftAmt << std::endl;
 }
 
 void
@@ -132,4 +134,32 @@ DefaultBTB::update(Addr instPC, const TheISA::PCState &target, ThreadID tid)
     btb[btb_idx].valid = true;
     btb[btb_idx].target = target;
     btb[btb_idx].tag = getTag(instPC);
+}
+
+void
+DefaultBTB::scale_btb (unsigned tf_scale_factor)
+{
+         numEntries /= tf_scale_factor;
+         if (!isPowerOf2(numEntries)) {
+        	fatal("BTB entries is not a power of 2!");
+    	 }
+	 idxMask = numEntries - 1;
+	 tagShiftAmt = instShiftAmt + floorLog2(numEntries);
+	 btb.resize(numEntries);
+}
+
+void
+DefaultBTB::scale_up_btb (unsigned tf_scale_factor)
+{
+         numEntries *= tf_scale_factor;
+         if (!isPowerOf2(numEntries)) {
+        	fatal("BTB entries is not a power of 2!");
+    	 }
+         idxMask = numEntries - 1;
+	 tagShiftAmt = instShiftAmt + floorLog2(numEntries);
+	 btb.resize(numEntries);
+    	 //need to invalidate the new btb entries
+	 for (unsigned i = (numEntries/tf_scale_factor); i < numEntries; ++i) {
+         btb[i].valid = false;
+    	 }	
 }

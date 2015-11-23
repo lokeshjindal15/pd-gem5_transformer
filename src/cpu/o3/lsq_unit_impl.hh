@@ -301,6 +301,8 @@ template<class Impl>
 void
 LSQUnit<Impl>::resizeLQ(unsigned size)
 {
+
+	std::cout << "****TRANSFORM LSQUnit<Impl>::resizeLQ : Old LQEntries:" << LQEntries;
     unsigned size_plus_sentinel = size + 1;
     assert(size_plus_sentinel >= LQEntries);
 
@@ -315,12 +317,14 @@ LSQUnit<Impl>::resizeLQ(unsigned size)
     }
 
     assert(LQEntries <= 256);
+	std::cout << " New LQEntries:" << LQEntries << std::endl;
 }
 
 template<class Impl>
 void
 LSQUnit<Impl>::resizeSQ(unsigned size)
 {
+	std::cout << "****TRANSFORM LSQUnit<Impl>::resizeSQ : Old SQEntries:" << SQEntries;
     unsigned size_plus_sentinel = size + 1;
     if (size_plus_sentinel > SQEntries) {
         while (size_plus_sentinel > storeQueue.size()) {
@@ -333,6 +337,7 @@ LSQUnit<Impl>::resizeSQ(unsigned size)
     }
 
     assert(SQEntries <= 256);
+	std::cout << " New SQEntries:" << SQEntries << std::endl;
 }
 
 template <class Impl>
@@ -778,6 +783,8 @@ LSQUnit<Impl>::writebackStores()
     if (TheISA::HasUnalignedMemAcc) {
         writebackPendingStore();
     }
+
+	DPRINTF(LSQUnit, "LSQUnit<Impl>::writebackStores getting executed storesToWB:%d storeWBIdx:%d\n", storesToWB, storeWBIdx);
 
     while (storesToWB > 0 &&
            storeWBIdx != storeTail &&
@@ -1323,4 +1330,47 @@ LSQUnit<Impl>::dumpInsts() const
     cprintf("\n");
 }
 
+template<class Impl>
+void
+LSQUnit<Impl>::scale_lsq_unit(unsigned tf_scale_factor)//lokeshjindal15
+{
+    DPRINTF(LSQUnit, "Scaling LSQunit by scaling factor %u\n",tf_scale_factor);
+
+	std::cout << "*****TRANSFROM scale_lsq_unit : Old LQEntries:" << LQEntries << " Old SQEntries:" << SQEntries << std::endl;
+    //// Add 1 for the sentinel entry (they are circular queues).
+    LQEntries = LQEntries/tf_scale_factor + 1;
+    SQEntries = SQEntries/tf_scale_factor + 1;
+
+    std::cout << " New LQEntries:" << LQEntries << " New SQEntries:" << SQEntries << std::endl;
+    ////Due to uint8_t index in LSQSenderState
+    assert(LQEntries <= 256);
+    assert(SQEntries <= 256);
+
+    //loadQueue.resize(LQEntries);
+    //storeQueue.resize(SQEntries);
+
+    //resetState();//moving this call outside as takeoverfrom
+}
+
+template<class Impl>
+void
+LSQUnit<Impl>::scale_up_lsq_unit(unsigned tf_scale_factor)//lokeshjindal15
+{
+    DPRINTF(LSQUnit, "Scaling LSQunit by scaling factor %u\n",tf_scale_factor);
+
+	std::cout << "*****TRANSFROM scale_lsq_unit : Old LQEntries:" << LQEntries << " Old SQEntries:" << SQEntries << std::endl;
+    //// Add 1 for the sentinel entry (they are circular queues).
+    LQEntries = (LQEntries - 1) * tf_scale_factor + 1;
+    SQEntries = (SQEntries - 1) * tf_scale_factor + 1;
+
+    std::cout << " New LQEntries:" << LQEntries << " New SQEntries:" << SQEntries << std::endl;
+    ////Due to uint8_t index in LSQSenderState
+    assert(LQEntries <= 256);
+    assert(SQEntries <= 256);
+
+    //loadQueue.resize(LQEntries);
+    //storeQueue.resize(SQEntries);
+
+    //resetState();//moving this call outside as takeoverfrom
+}
 #endif//__CPU_O3_LSQ_UNIT_IMPL_HH__

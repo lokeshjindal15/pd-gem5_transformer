@@ -321,6 +321,13 @@ class BPredUnit : public SimObject
     ProbePoints::PMUUPtr ppMisses;
 
     /** @} */
+
+   public:
+        //lokeshjindal15 function to expose BTB
+        DefaultBTB * getBTB()
+        {
+                return &BTB;
+        }
 };
 
 #endif // __CPU_PRED_BPRED_UNIT_HH__

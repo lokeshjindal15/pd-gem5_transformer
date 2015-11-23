@@ -68,6 +68,9 @@
 #include "params/DerivO3CPU.hh"
 #include "sim/process.hh"
 
+#include "mem/cache/cache.hh"//lokeshjindal15
+#include "mem/cache/tags/lru.hh"//lokeshjindal15
+
 template <class>
 class Checker;
 class ThreadContext;
@@ -170,6 +173,11 @@ class FullO3CPU : public BaseO3CPU
             : MasterPort(_cpu->name() + ".dcache_port", _cpu), lsq(_lsq),
               cpu(_cpu)
         { }
+
+	//Function to scale the LSQ of Dcacheport lokeshjindal15 DEPRECATED
+	void scale_LSQ(unsigned tf_scale_factor_LSQ);
+	//Function to scheck if LSQ of Dcacheport is empty lokeshjindal15 DEPRECATED
+	bool isLSQempty();
 
       protected:
 
@@ -741,6 +749,46 @@ class FullO3CPU : public BaseO3CPU
     //number of misc
     Stats::Scalar miscRegfileReads;
     Stats::Scalar miscRegfileWrites;
+    
+    // Stats::Scalar old_cpu_big0_LITTLE1;
+    Stats::Scalar cur_cpu_big1_LITTLE2;
+
+public:
+	//lokeshjindal15 per cpu flags to be used for transformation
+	// bool start_transform_down;
+	bool transforming_down;
+	bool done_transform_down;
+
+	// bool start_transform_up;
+	bool transforming_up;
+	bool done_transform_up;
+	
+	void transform_down_self();
+	void transform_up_self();
+
+    void copyRenameMaptoCommit(typename CPUPolicy::RenameMap * src_rename_map, typename CPUPolicy::RenameMap * dest_rename_map);
+/*
+    void do_something_with_dcache()
+    {
+        ((Cache<LRU>*)(((getDataPort()).getPeerPort())->getOwner()))->print_cache_message();
+        //((((getDataPort()).getPeerPort())->getOwner())).do_something_with_memobject();
+    }
+*/
+    void scaleL1Ddown();
+    Cache<LRU> * getDcachePtr();
+    Cache<LRU> * getIcachePtr();
+
+//     unsigned rob_scale_enabled;//lokeshjindal15 
+//     unsigned btb_scale_enabled;//lokeshjindal15 
+//     unsigned tlb_scale_enabled;//lokeshjindal15 
+//     unsigned iq_scale_enabled;//lokeshjindal15 
+//     unsigned regfile_scale_enabled;//lokeshjindal15 
+//     unsigned lsq_scale_enabled;//lokeshjindal15 
+//     unsigned alu_scale_enabled;//lokeshjindal15 
+//     unsigned fpu_scale_enabled;//lokeshjindal15 
+//     unsigned dcache_scale_enabled;//lokeshjindal15 
+//     unsigned icache_scale_enabled;//lokeshjindal15 
+
 };
 
 #endif // __CPU_O3_CPU_HH__

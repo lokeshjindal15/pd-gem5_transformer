@@ -132,6 +132,23 @@ FullO3CPU<Impl>::DcachePort::recvRetry()
 }
 
 template <class Impl>
+void
+FullO3CPU<Impl>::DcachePort::scale_LSQ(unsigned tf_scale_factor_LSQ)//lokeshjindal15
+{
+	lsq->scale_entire_lsq(2);
+	lsq->update_lsq_units(2);
+	lsq->resetEntries();
+}
+
+template <class Impl>
+bool
+FullO3CPU<Impl>::DcachePort::isLSQempty()//lokeshjindal15
+{
+	return lsq->isEmpty();
+}
+
+
+template <class Impl>
 FullO3CPU<Impl>::TickEvent::TickEvent(FullO3CPU<Impl> *c)
     : Event(CPU_Tick_Pri), cpu(c)
 {
@@ -270,6 +287,11 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
     assert(params->numPhysFloatRegs >= numThreads * TheISA::NumFloatRegs);
     assert(params->numPhysCCRegs >= numThreads * TheISA::NumCCRegs);
 
+    std::cout << "Printing the number of arch regs:" << std::endl;
+    std::cout << "TheISA::NumIntRegs - " << TheISA::NumIntRegs << std::endl;
+    std::cout << "TheISA::NumFloatRegs - " << TheISA::NumFloatRegs << std::endl;
+    std::cout << "TheISA::NumCCRegs - " << TheISA::NumCCRegs << std::endl;
+
     rename.setScoreboard(&scoreboard);
     iew.setScoreboard(&scoreboard);
 
@@ -398,6 +420,36 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
 
     for (ThreadID tid = 0; tid < this->numThreads; tid++)
         this->thread[tid]->setFuncExeInst(0);
+
+	//lokeshjindal15 init transform flags
+	// start_transform_down = 0;
+	transforming_down = 0;
+	done_transform_down = 0;
+	
+	// start_transform_up = 0;
+	transforming_up = 0;
+	done_transform_up = 1;
+
+    // rob_scale_enabled = params->rob_scale_enabled;
+    // std::cout << "rob_scale_enabled:" << rob_scale_enabled << std::endl;
+    // btb_scale_enabled = params->btb_scale_enabled;
+    // std::cout << "btb_scale_enabled:" << btb_scale_enabled << std::endl;
+    // tlb_scale_enabled = params->tlb_scale_enabled;
+    // std::cout << "tlb_scale_enabled:" << tlb_scale_enabled << std::endl;
+    // iq_scale_enabled = params->iq_scale_enabled;
+    // std::cout << "iq_scale_enabled:" << iq_scale_enabled << std::endl;
+    // regfile_scale_enabled = params->regfile_scale_enabled;
+    // std::cout << "regfile_scale_enabled:" << regfile_scale_enabled << std::endl;
+    // lsq_scale_enabled = params->lsq_scale_enabled;
+    // std::cout << "lsq_scale_enabled:" << lsq_scale_enabled << std::endl;
+    // alu_scale_enabled = params->alu_scale_enabled;
+    // std::cout << "alu_scale_enabled:" << alu_scale_enabled << std::endl;
+    // fpu_scale_enabled = params->fpu_scale_enabled;
+    // std::cout << "fpu_scale_enabled:" << fpu_scale_enabled << std::endl;
+    // dcache_scale_enabled = params->dcache_scale_enabled;
+    // std::cout << "dcache_scale_enabled:" << dcache_scale_enabled << std::endl;
+    // icache_scale_enabled = params->icache_scale_enabled;
+    // std::cout << "icache_scale_enabled:" << icache_scale_enabled << std::endl;
 }
 
 template <class Impl>
@@ -530,6 +582,11 @@ FullO3CPU<Impl>::regStats()
         .name(name() + ".misc_regfile_writes")
         .desc("number of misc regfile writes")
         .prereq(miscRegfileWrites);
+    
+    cur_cpu_big1_LITTLE2
+        .name(name() + ".cur_cpu_big1_LITTLE2")
+        .desc("whether the cpu is big(1) or LITTLE(2)")
+        .prereq(cur_cpu_big1_LITTLE2);
 }
 
 template <class Impl>
@@ -537,11 +594,39 @@ void
 FullO3CPU<Impl>::tick()
 {
     DPRINTF(O3CPU, "\n\nFullO3CPU: Ticking main, FullO3CPU.\n");
+
+    //TODO FIXME remove this hack
+    static int print_once = 0;
+
+    if (print_once == 0)
+    {
+        print_once = 1;
+        /*INTEGRATION_FIX
+        do_something_with_dcache();
+        iew.fuPool->dump();
+        iew.fuPool->dump_fuPerCapList();
+        INTEGRATION_FIX*/
+    }
+
+
+
     assert(!switchedOut());
     assert(getDrainState() != Drainable::Drained);
 
     ++numCycles;
     ppCycles->notify(1);
+    assert ((done_transform_up || done_transform_down) == 1);
+
+    if (done_transform_up)
+    {
+        assert(done_transform_down == 0);
+        cur_cpu_big1_LITTLE2 = 1;
+    }
+    if (done_transform_down)
+    {
+        assert(done_transform_up == 0);
+        cur_cpu_big1_LITTLE2 = 2;
+    }
 
 //    activity = false;
 
@@ -569,6 +654,121 @@ FullO3CPU<Impl>::tick()
     if (removeInstsThisCycle) {
         cleanUpRemovedInsts();
     }
+
+
+        if (1 && curTick() > 15270000 )
+        {
+                static int start_drain = 0;
+                if (!start_drain)
+                {
+                start_drain = 1;
+                std::cout << "*****TRANSFORM going to call drain()" << endl;
+                Stats::dump();
+                Stats::reset();
+                drain(drainManager);
+                std::cout << "*****TRANSFORM DONE with drain()" << endl;
+                }
+
+                if (isDrained())
+                {
+                        transform_down_self();
+                        std::cout << "****TRANSFORM DRAINRESUME going to call drainResume" << endl;
+                        drainResume();
+                        Stats::dump();
+                        Stats::reset();
+                        std::cout << "****TRANSFORM DONE Core should resume now!" << endl;
+                }
+        }
+
+
+        if (1)
+        {
+                // if (start_transform_down)
+                // {
+                // // assert(!static_cast<bool>(cur_cpu_big1_LITTLE2));
+                // assert(done_transform_down == 0);
+                // assert(transforming_down == 0);
+                // assert(done_transform_up == 1);
+                // assert(transforming_up == 0);
+                // assert(start_transform_up == 0);
+                // transforming_down = 1;
+                // start_transform_down = 0;
+                // std::cout << "*****at tick: " << curTick() << " TRANSFORM_DOWN going to call drain()" << endl;
+                // // Stats::dump();
+                // // Stats::reset();
+                // drain(drainManager);
+                // std::cout << "*****TRANSFORM DONE calling with drain()" << endl;
+                // }
+                
+                if (transforming_down && isDrained())
+                {
+                        // assert(!static_cast<bool>(cur_cpu_big1_LITTLE2));
+                        assert(done_transform_down == 0);
+                        assert(done_transform_up == 1);
+                        // assert(start_transform_down == 0);
+                        // assert(start_transform_up == 0);
+                        assert(transforming_up == 0);
+                        transform_down_self();
+                        
+                        transforming_down = 0;
+                        done_transform_down = 1;
+                        done_transform_up = 0;
+        
+                        std::cout << "****TRANSFORM DRAINRESUME going to call drainResume" << endl;
+                        drainResume();
+                        cur_cpu_big1_LITTLE2 = 1;
+                        // std::cout << "BEFORE transforming_down cur_cpu_big1_LITTLE2 is: " << cur_cpu_big1_LITTLE2 << std::endl;
+                        Stats::dump();
+                        Stats::reset();
+                        cur_cpu_big1_LITTLE2 = 2;
+                        // std::cout << "AFTER transforming_down cur_cpu_big1_LITTLE2 is: " << cur_cpu_big1_LITTLE2 << std::endl;
+                        std::cout << "****TRANSFORM DONE Core should resume now!" << endl;
+                }
+        } 
+        if (1)
+        {
+                // if (start_transform_up)
+                // {
+                // // assert(static_cast<bool>(cur_cpu_big1_LITTLE2));
+                // assert(done_transform_down == 1);
+                // assert(transforming_down == 0);
+                // assert(done_transform_up == 0);
+                // assert(transforming_up == 0);
+                // // assert(start_transform_down == 0);
+                // transforming_up = 1;
+                // start_transform_up = 0;
+                // std::cout << "*****at tick: " << curTick() << " TRANSFORM_UP going to call drain()" << endl;
+                // // Stats::dump();
+                // // Stats::reset();
+                // drain(drainManager);
+                // std::cout << "*****TRANSFORM DONE calling with drain()" << endl;
+                // }
+                
+                if (transforming_up && isDrained())
+                {
+                        // assert(static_cast<bool>(cur_cpu_big1_LITTLE2));
+                        assert(done_transform_up == 0);
+                        assert(done_transform_down == 1);
+                        // assert(start_transform_down == 0);
+                        // assert(start_transform_up == 0);
+                        assert(transforming_down == 0);
+                        transform_up_self();
+                        
+                        transforming_up = 0;
+                        done_transform_up = 1;
+                        done_transform_down = 0;
+        
+                        std::cout << "****TRANSFORM DRAINRESUME going to call drainResume" << endl;
+                        drainResume();
+                        cur_cpu_big1_LITTLE2 = 2;
+                        // std::cout << "BEFORE transforming_up cur_cpu_big1_LITTLE2 is: " << cur_cpu_big1_LITTLE2 << std::endl;
+                        Stats::dump();
+                        Stats::reset();
+                        cur_cpu_big1_LITTLE2 = 1;
+                        // std::cout << "AFTER transforming_up cur_cpu_big1_LITTLE2 is: " << cur_cpu_big1_LITTLE2 << std::endl;
+                        std::cout << "****TRANSFORM DONE Core should resume now!" << endl;
+                }
+        }
 
     if (!tickEvent.scheduled()) {
         if (_status == SwitchedOut) {
@@ -1066,6 +1266,9 @@ FullO3CPU<Impl>::tryDrain()
     DPRINTF(Drain, "CPU done draining, processing drain event\n");
     drainManager->signalDrainDone();
     drainManager = NULL;
+
+	//lokeshjindal15 print inside trydrain
+	std::cout << "*****TRANSFORM trydrain successfully completed" << endl;
 
     return true;
 }
@@ -1683,5 +1886,365 @@ FullO3CPU<Impl>::updateThreadPriority()
     }
 }
 
+template <class Impl>
+void
+FullO3CPU<Impl>::transform_down_self()
+{
+	assert(rob.isEmpty());//my ROB should be empty
+ 	assert(!iew.ldstQueue.hasStoresToWB());//my LSQ should not be holding any entries pending for WB
+ 	
+	if (btb_scale_enabled)
+    {
+    std::cout << "*****TRANSFORM calling scale_btb original size btb:" << fetch.getbranchPred()->getBTB()->getnumEntries() << endl;
+ 	fetch.getbranchPred()->getBTB()->scale_btb(2);
+	std::cout << "*****TRANSFORM calling scale_btb new size btb:" << fetch.getbranchPred()->getBTB()->getnumEntries() << endl;
+    }
+
+	if (tlb_scale_enabled)
+    {
+    std::cout << "*****TRANSFORM calling scale_TLB original size dtb:" << dtb->getsize() << " itb:" << itb->getsize() << endl;
+ 	dtb->scale_TLB(2);
+ 	itb->scale_TLB(2);	
+ 	std::cout << "*****TRANSFORM DONE calling scale_TLB new size dtb:" << dtb->getsize() << " itb:" << itb->getsize() << endl;
+    }
+
+    if (iq_scale_enabled)
+    {
+ 	std::cout << "*****TRANSFORM calling scale_IQ" << endl;
+ 	iew.instQueue.scale_IQ(2);
+ 	iew.instQueue.update_IQ_threads(2);
+ 	iew.instQueue.scaled = true;
+ 	std::cout << "*****TRANSFORM DONE calling scale_IQ newIQentries:" << iew.instQueue.getnumEntries() << endl;
+    }
+
+/*INTEGRATION_FIX 	
+    if (regfile_scale_enabled)
+    {
+ 	regFile.print_params();
+    std::cout << "LOKESH BEFORE TRANSFORM_DOWN PRINTING FREELIST" << std::endl;
+    freeList.print_entries();
+ 	//Let's print the reg rename mapping
+    
+    std::cout << "LOKESH BEFORE TRANSFORM_DOWN PRINTING renameMap" << std::endl;
+ 	renameMap[0].unified_print_mapping();//call UnifiedRenameMap::print_mapping for thread 0 FIXME TODO generalize for all threads
+    std::cout << "LOKESH BEFORE TRANSFORM_DOWN PRINTING commitRenameMap" << std::endl;
+ 	commitRenameMap[0].unified_print_mapping();//call UnifiedRenameMap::print_mapping for thread 0 FIXME TODO generalize for all threads
+ 	
+    std::cout << "*****TRANSFORM calling functions to scale Phy Regfile" << endl;
+ 	renameMap[0].restrict_archreg_mapping(2,1,1);	        	
+ 	renameMap[0].unified_print_mapping();//call UnifiedRenameMap::print_mapping for thread 0 FIXME TODO generalize for all threads
+ 	regFile.scale_regfile(2,1,1,&freeList);
+ 	renameMap[0].compact_regmapping();//TODO FIXME check if needs to be called. I think this is wrong
+    
+    std::cout << "LOKESH AFTER TRANSFORM_DOWN PRINTING renameMap" << std::endl;
+ 	renameMap[0].unified_print_mapping();//call UnifiedRenameMap::print_mapping for thread 0 FIXME TODO generalize for all threads
+    
+    copyRenameMaptoCommit(&renameMap[0], &commitRenameMap[0]);
+    
+    std::cout << "LOKESH AFTER TRANSFORM_DOWN PRINTING commitRenameMap" << std::endl;
+ 	commitRenameMap[0].unified_print_mapping();//call UnifiedRenameMap::print_mapping for thread 0 FIXME TODO generalize for all threads
+ 	
+    regFile.scaled = true;
+ 	std::cout << "*****TRANSFORM DONE calling functions to scale Phy Regfile" << endl;
+ 	regFile.print_params();
+    std::cout << "LOKESH PRINTING AFTER TRANSFORM_DOWN FREELIST" << std::endl;
+ 	freeList.print_entries();
+
+ 	//rename.resetStage();
+ 	//rename.startupStage();
+ 	rename.takeOverFrom();
+ 	iew.instQueue.updatenumPhysRegs(regFile.totalNumPhysRegs());
+ 	scoreboard.updatenumPhysRegs(regFile.totalNumPhysRegs());
+ 	iew.instQueue.getDependencyGraph()->resize(regFile.totalNumPhysRegs());
+ 	iew.instQueue.getDependencyGraph()->reset();
+
+	//reset the scoreboard entries
+	scoreboard.reset_scoreboard();	
+    }
+INTEGRATION_FIX*/
+    if (rob_scale_enabled)
+    {
+ 	std::cout << "*****TRANSFORM calling scale_rob" << endl;
+ 	rob.scale_rob(2);
+ 	rob.update_rob_threads(2);
+ 	//rob.resetState();
+ 	rob.takeOverFrom();
+ 	rob.scaled = true;
+ 	std::cout << "*****TRANSFORM DONE calling scale_rob" << endl;
+    }
+    if (lsq_scale_enabled)
+    {
+ 	std::cout << "*****TRANSFORM calling functions to scale LSQ" << endl;
+ 	iew.scale_LSQ(2);
+ 	iew.LSQisScaled = true;
+ 	std::cout << "*****TRANSFORM DONE calling functions to scale LSQ" << endl;
+    }
+
+
+    //scaledown ALUs/FPUs
+    if (alu_scale_enabled)
+    {
+    std::cout << std::endl << "***** LOKESH print ALUs/FPUs BEFORE scaling DOWN! *****" << std:: endl;
+    iew.fuPool->dump_fuPerCapList();
+    iew.fuPool->scaleDownALUs(2);
+    std::cout << std::endl << "***** LOKESH print ALUs/FPUs AFTER scaling DOWN! *****" << std:: endl;
+    iew.fuPool->dump_fuPerCapList();
+    }
+
+    if (fpu_scale_enabled)
+    {
+    std::cout << std::endl << "***** LOKESH print ALUs/FPUs BEFORE scaling DOWN! *****" << std:: endl;
+    iew.fuPool->dump_fuPerCapList();
+    iew.fuPool->scaleDownFPUs(2);
+    std::cout << std::endl << "***** LOKESH print ALUs/FPUs AFTER scaling DOWN! *****" << std:: endl;
+    iew.fuPool->dump_fuPerCapList();
+    }
+
+
+	iew.takeOverFrom();//This is VERY IMP to do after all the updates to various data structures! yy
+
+	fetch.takeOverFrom();
+
+    	decode.takeOverFrom();
+
+    	rename.takeOverFrom();
+
+    	commit.takeOverFrom();
+
+/*INTEGRATION_FIX
+    //scale down Dcache
+    if (dcache_scale_enabled)
+    {
+    Cache<LRU> * dcacheptr = getDcachePtr();
+    std::cout << std::endl << "***** LOKESH print dcache BEFORE scaling DOWN! *****" << std:: endl;
+    //dcacheptr->printAllBlks();
+    std::cout << dcacheptr->tags->print() << std::endl;
+    //dcacheptr->memWriteback();
+    //dcacheptr->memInvalidate();
+    dcacheptr->scaleCacheDown(2);
+    std::cout << std::endl << "***** LOKESH print dcache AFTER scaling DOWN! *****" << std:: endl;
+    //dcacheptr->printAllBlks();
+    std::cout << dcacheptr->tags->print() << std::endl;
+    }
+
+    //scale down Icache
+    if (icache_scale_enabled)
+    {
+    Cache<LRU> * icacheptr = getIcachePtr();
+    std::cout << std::endl << "***** LOKESH print icache BEFORE scaling DOWN! *****" << std:: endl;
+    //icacheptr->printAllBlks();
+    std::cout << icacheptr->tags->print() << std::endl;
+    //icacheptr->memWriteback();
+    //icacheptr->memInvalidate();
+    icacheptr->scaleCacheDown(2);
+    std::cout << std::endl << "***** LOKESH print icache AFTER scaling DOWN! *****" << std:: endl;
+    //icacheptr->printAllBlks();
+    std::cout << icacheptr->tags->print() << std::endl;
+    }
+INTEGRATION_FIX*/
+
+}
+
+template <class Impl>
+void
+FullO3CPU<Impl>::transform_up_self()
+{
+	assert(rob.isEmpty());//my ROB should be empty
+ 	assert(!iew.ldstQueue.hasStoresToWB());//my LSQ should not be holding any entries pending for WB
+    if (btb_scale_enabled)
+    {    
+	std::cout << "*****TRANSFORM_UP calling scale_up_btb original size btb:" << fetch.getbranchPred()->getBTB()->getnumEntries() << endl;
+ 	fetch.getbranchPred()->getBTB()->scale_up_btb(2);
+	std::cout << "*****TRANSFORM_UP calling scale_up_btb new size btb:" << fetch.getbranchPred()->getBTB()->getnumEntries() << endl;
+    }
+
+    if (tlb_scale_enabled)
+    {
+	std::cout << "*****TRANSFORM_UP calling scale_up_TLB original size dtb:" << dtb->getsize() << " itb:" << itb->getsize() << endl;
+ 	dtb->scale_up_TLB(2);
+ 	itb->scale_up_TLB(2);	
+ 	std::cout << "*****TRANSFORM_UP DONE calling scale_up_TLB new size dtb:" << dtb->getsize() << " itb:" << itb->getsize() << endl;
+    }
+
+    if (iq_scale_enabled)
+    {
+ 	std::cout << "*****TRANSFORM_UP calling scale_up_IQ oldIQentries:" << iew.instQueue.getnumEntries() << " oldFreeEntries:" << iew.instQueue.numFreeEntries() << endl;
+ 	iew.instQueue.scale_up_IQ(2);
+ 	iew.instQueue.update_up_IQ_threads(2);
+ 	iew.instQueue.scaled = true;
+ 	std::cout << "*****TRANSFORM_UP DONE calling scale_up_IQ newIQentries:" << iew.instQueue.getnumEntries() << " newFreeEntries:" << iew.instQueue.numFreeEntries() << endl;
+    }
+
+/*INTEGRATION_FIX 	
+    if (regfile_scale_enabled)
+    {
+ 	regFile.print_params();
+    std::cout << "LOKESH BEFORE TRANSFORM_UP PRINTING FREELIST" << std::endl;
+    freeList.print_entries();
+ 	freeList.print_entries();
+ 	
+    //Let's print the reg rename mapping
+    std::cout << "LOKESH BEFORE TRANSFORM_UP PRINTING renameMap" << std::endl;
+ 	renameMap[0].unified_print_mapping();//call UnifiedRenameMap::print_mapping for thread 0 FIXME TODO generalize for all threads
+    std::cout << "LOKESH BEFORE TRANSFORM_UP PRINTING commitRenameMap" << std::endl;
+ 	commitRenameMap[0].unified_print_mapping();//call UnifiedRenameMap::print_mapping for thread 0 FIXME TODO generalize for all threads
+ 	
+    std::cout << "*****TRANSFORM calling functions to scale Phy Regfile" << endl;
+ 	regFile.scale_up_regfile(2,1,1,&freeList);
+ 	renameMap[0].restrict_up_archreg_mapping(2,1,1);	        	
+ 	//renameMap[0].compact_up_regmapping();//TODO FIXME check if needs to be called
+    
+    std::cout << "LOKESH AFTER TRANSFORM_UP PRINTING renameMap" << std::endl;
+ 	renameMap[0].unified_print_mapping();//call UnifiedRenameMap::print_mapping for thread 0 FIXME TODO generalize for all threads
+    
+    copyRenameMaptoCommit(&renameMap[0], &commitRenameMap[0]);
+    
+    std::cout << "LOKESH AFTER TRANSFORM_UP PRINTING commitRenameMap" << std::endl;
+ 	commitRenameMap[0].unified_print_mapping();//call UnifiedRenameMap::print_mapping for thread 0 FIXME TODO generalize for all threads
+ 	
+    regFile.scaled = true;
+ 	std::cout << "*****TRANSFORM DONE calling functions to scale Phy Regfile" << endl;
+ 	regFile.print_params();
+    std::cout << "LOKESH AFTER TRANSFORM_UP PRINTING FREELIST" << std::endl;
+ 	freeList.print_entries();
+
+ 	//rename.resetStage();
+ 	//rename.startupStage();
+ 	rename.takeOverFrom();
+ 	iew.instQueue.updatenumPhysRegs(regFile.totalNumPhysRegs());
+ 	scoreboard.updatenumPhysRegs(regFile.totalNumPhysRegs());
+ 	iew.instQueue.getDependencyGraph()->resize(regFile.totalNumPhysRegs());
+ 	iew.instQueue.getDependencyGraph()->reset();
+	
+	//reset the scoreboard entries
+	scoreboard.reset_scoreboard();	
+    }
+INTEGRATION_FIX*/
+    if (rob_scale_enabled)
+    {
+	std::cout << "*****TRANSFORM_UP calling scale_up_rob" << endl;
+ 	rob.scale_up_rob(2);
+ 	rob.update_up_rob_threads(2);
+ 	//rob.resetState();
+ 	rob.takeOverFrom();
+ 	rob.scaled = true;
+ 	std::cout << "*****TRANSFORM_UP DONE calling scale_up_rob" << endl;
+    }
+    if (lsq_scale_enabled)
+    {
+ 	std::cout << "*****TRANSFORM_UP calling functions to scale LSQ" << endl;
+ 	iew.scale_up_LSQ(2);
+ 	iew.LSQisScaled = true;
+ 	std::cout << "*****TRANSFORM_UP DONE calling functions to scale LSQ" << endl;
+    }
+
+
+    //scale up ALUs/FPUs
+    if (alu_scale_enabled || fpu_scale_enabled)
+    {
+    std::cout << std::endl << "***** LOKESH print ALUs/FPUs BEFORE scaling UP! *****" << std:: endl;
+    iew.fuPool->dump_fuPerCapList();
+    iew.fuPool->scaleUpFUs();
+    std::cout << std::endl << "***** LOKESH print ALUs/FPUs AFTER scaling UP! *****" << std:: endl;
+    iew.fuPool->dump_fuPerCapList();
+    }
+
+	iew.takeOverFrom();//This is VERY IMP to do after all the updates to various data structures! yy
+	
+	fetch.takeOverFrom();
+
+    	decode.takeOverFrom();
+
+    	rename.takeOverFrom();
+
+    	commit.takeOverFrom();
+
+/*INTEGRATION_FIX
+    //scale Dcache up
+    if (dcache_scale_enabled)
+    {
+    Cache<LRU> * dcacheptr = getDcachePtr();
+    std::cout << std::endl << "***** LOKESH print dcache BEFORE scaling UP! *****" << std:: endl;
+    //dcacheptr->printAllBlks();
+    std::cout << dcacheptr->tags->print() << std::endl;
+    //dcacheptr->memWriteback();
+    //dcacheptr->memInvalidate();
+    dcacheptr->scaleCacheUp(2);
+    std::cout << std::endl << "***** LOKESH print dcache AFTER scaling UP! *****" << std:: endl;
+    //dcacheptr->printAllBlks();
+    std::cout << dcacheptr->tags->print() << std::endl;
+    }
+
+    //scale Icache up
+    if (icache_scale_enabled)
+    {
+    Cache<LRU> * icacheptr = getIcachePtr();
+    std::cout << std::endl << "***** LOKESH print icache BEFORE scaling UP! *****" << std:: endl;
+    //icacheptr->printAllBlks();
+    std::cout << icacheptr->tags->print() << std::endl;
+    //icacheptr->memWriteback();
+    //icacheptr->memInvalidate();
+    icacheptr->scaleCacheUp(2);
+    std::cout << std::endl << "***** LOKESH print icache AFTER scaling UP! *****" << std:: endl;
+    //icacheptr->printAllBlks();
+    std::cout << icacheptr->tags->print() << std::endl;
+    }
+INTEGRATION_FIX*/
+}
+/*INTEGRATION_FIX
+template <class Impl>
+void
+FullO3CPU<Impl>::copyRenameMaptoCommit(typename CPUPolicy::RenameMap * src_rename_map, typename CPUPolicy::RenameMap * dest_rename_map)
+{
+    for (RegIndex i = 0; i < TheISA::NumIntRegs; i++)
+    {
+        RegIndex phy = src_rename_map->lookupInt(i);
+        assert((src_rename_map->getregFile())->isIntPhysReg(phy));
+        assert((dest_rename_map->getregFile())->isIntPhysReg(phy));
+        dest_rename_map->setIntEntry(i, phy);
+    }
+
+    for (RegIndex i = 0; i < TheISA::NumFloatRegs; i++)
+    {
+        RegIndex phy = src_rename_map->lookupFloat(i);
+        assert((src_rename_map->getregFile())->isFloatPhysReg(phy));
+        assert((dest_rename_map->getregFile())->isFloatPhysReg(phy));
+        dest_rename_map->setFloatEntry(i, phy);
+    }
+
+    for (RegIndex i = 0; i < TheISA::NumCCRegs; i++)
+    {
+        RegIndex phy = src_rename_map->lookupCC(i);
+        assert((src_rename_map->getregFile())->isCCPhysReg(phy));
+        assert((dest_rename_map->getregFile())->isCCPhysReg(phy));
+        dest_rename_map->setCCEntry(i, phy);
+    }
+}
+INTEGRATION_FIX*/
+
+/*function to scale down Dcache
+ *
+ */
+/*INTEGRATION_FIX
+template <class Impl>
+void
+FullO3CPU<Impl>::scaleL1Ddown()
+{
+    Cache<LRU>* DCachePtr = ((Cache<LRU>*)(((getDataPort()).getPeerPort())->getOwner()));
+    std::cout << "*****TRANSFORM scaleL1Ddown: DCachePtr:" << DCachePtr << std::endl;
+}
+
+template <class Impl>
+Cache<LRU>* FullO3CPU<Impl>::getDcachePtr()
+{
+    return ((Cache<LRU>*)(((getDataPort()).getPeerPort())->getOwner()));
+}
+
+template <class Impl>
+Cache<LRU>* FullO3CPU<Impl>::getIcachePtr()
+{
+    return ((Cache<LRU>*)(((getInstPort()).getPeerPort())->getOwner()));
+}
+INTEGRATION_FIX*/
 // Forward declaration of FullO3CPU.
 template class FullO3CPU<O3CPUImpl>;

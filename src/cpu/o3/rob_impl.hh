@@ -103,6 +103,9 @@ ROB<Impl>::ROB(O3CPU *_cpu, DerivO3CPUParams *params)
                     "Partitioned, Threshold}");
     }
 
+    //lokeshjindal15 init scaled to 0
+    scaled = false;
+
     resetState();
 }
 
@@ -563,4 +566,45 @@ ROB<Impl>::findInst(ThreadID tid, InstSeqNum squash_inst)
     return NULL;
 }
 
+template <class Impl>
+void
+ROB<Impl>::scale_rob(unsigned tf_scale_factor)//lokeshjindal15
+{
+    std::cout << "*****TRANSFORM make_rob_half original size = " << numEntries;
+    numEntries /= tf_scale_factor;
+    std::cout << "new rob size = " << numEntries << endl;  
+}
+
+template <class Impl>
+void
+ROB<Impl>::scale_up_rob(unsigned tf_scale_factor)//lokeshjindal15
+{
+    std::cout << "*****TRANSFORM_UP original size = " << numEntries;
+    numEntries *= tf_scale_factor;
+    std::cout << "new rob size = " << numEntries << endl;  
+}
+
+template <class Impl>
+void
+ROB<Impl>::update_rob_threads(unsigned tf_scale_factor)//lokeshjindal15
+{
+    std::cout << "*****TRANSFORM update_rob_threads ";
+	for (ThreadID tid = 0; tid  < numThreads; tid++) {
+		std::cout << " tid " << tid << " old maxEntries:" << maxEntries[tid] ;
+		maxEntries[tid] /= tf_scale_factor;
+		std::cout << " new maxEntries:" << maxEntries[tid] << endl;
+		}
+}
+
+template <class Impl>
+void
+ROB<Impl>::update_up_rob_threads(unsigned tf_scale_factor)//lokeshjindal15
+{
+    std::cout << "*****TRANSFORM_UP update_up_rob_threads ";
+	for (ThreadID tid = 0; tid  < numThreads; tid++) {
+		std::cout << " tid " << tid << " old maxEntries:" << maxEntries[tid] ;
+		maxEntries[tid] *= tf_scale_factor;
+		std::cout << " new maxEntries:" << maxEntries[tid] << endl;
+		}
+}
 #endif//__CPU_O3_ROB_IMPL_HH__

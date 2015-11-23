@@ -55,6 +55,67 @@ def _listMemTypes(option, opt, value, parser):
     sys.exit(0)
 
 def addCommonOptions(parser):
+    #lokeshjindal15 Addding cmd line option support for per-resource scaling
+    parser.add_option("--sdcard-image", action="store", type="string",
+                      default=" ",
+                      help="Specify the mxplayer image needed for asimbench")
+    parser.add_option("--rob_scale_enabled", action="store", type="int",
+                        default=0,
+                        help = "Enable/Disable ROB scaling")
+    parser.add_option("--btb_scale_enabled", action="store", type="int",
+                        default=0,
+                        help = "Enable/Disable BTB scaling")
+    parser.add_option("--tlb_scale_enabled", action="store", type="int",
+                        default=0,
+                        help = "Enable/Disable TLB ITB/DTB scaling")
+    parser.add_option("--iq_scale_enabled", action="store", type="int",
+                        default=0,
+                        help = "Enable/Disable IQ scaling")
+    parser.add_option("--regfile_scale_enabled", action="store", type="int",
+                        default=0,
+                        help = "Enable/Disable regFile scaling")
+    parser.add_option("--lsq_scale_enabled", action="store", type="int",
+                        default=0,
+                        help = "Enable/Disable LSQ scaling")
+    parser.add_option("--alu_scale_enabled", action="store", type="int",
+                        default=0,
+                        help = "Enable/Disable ALU scaling")
+    parser.add_option("--fpu_scale_enabled", action="store", type="int",
+                        default=0,
+                        help = "Enable/Disable FPU scaling")
+    parser.add_option("--dcache_scale_enabled", action="store", type="int",
+                        default=0,
+                        help = "Enable/Disable Dcache scaling")
+    parser.add_option("--icache_scale_enabled", action="store", type="int",
+                        default=0,
+                        help = "Enable/Disable Icache scaling")
+
+    # big little compare options
+    parser.add_option("--rob_entries", action="store", type="int",
+                        default=40)
+    parser.add_option("--iq_entries", action="store", type="int",
+                        default=32)
+    parser.add_option("--btb_entries", action="store", type="int",
+                        default=2048)
+    parser.add_option("--lq_entries", action="store", type="int",
+                        default=16)
+    parser.add_option("--sq_entries", action="store", type="int",
+                        default=16)
+    parser.add_option("--dtb_size", action="store", type="int",
+                        default=64)
+    parser.add_option("--itb_size", action="store", type="int",
+                        default=64)
+    parser.add_option("--int_regs", action="store", type="int",
+                        default=128)
+    parser.add_option("--float_regs", action="store", type="int",
+                        default=192)
+    parser.add_option("--cc_regs", action="store", type="int",
+                        default=640)
+    parser.add_option("--num_sintalus", action="store", type="int",
+                        default=2)
+    parser.add_option("--num_fpus", action="store", type="int",
+                        default=2)
+
     #Network options
     parser.add_option("--mac", type="string", default="00:90:00:00:00:01",
                       help = "MAC Address")

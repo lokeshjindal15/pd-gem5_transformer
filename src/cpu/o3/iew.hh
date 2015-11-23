@@ -54,6 +54,8 @@
 #include "debug/IEW.hh"
 #include "sim/probe/probe.hh"
 
+#include "cpu/o3/fu_pool.hh"//lokeshjindal15 TODO FIXME
+
 struct DerivO3CPUParams;
 class FUPool;
 
@@ -481,6 +483,14 @@ class DefaultIEW
     Stats::Formula wbFanout;
     /** Number of instructions per cycle delayed in writing back . */
     Stats::Formula wbPenalizedRate;
+
+public:
+
+	//Function to scale the LSQ of IEW lokeshjindal15
+	void scale_LSQ(unsigned tf_scale_factor_LSQ);
+	void scale_up_LSQ(unsigned tf_scale_factor_LSQ);
+	//Variable to keep track of whther LSQ has been scaled or not lokeshjindal15 
+	bool LSQisScaled;
 };
 
 #endif // __CPU_O3_IEW_HH__
