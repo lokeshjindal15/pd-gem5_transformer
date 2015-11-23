@@ -654,7 +654,8 @@ FullO3CPU<Impl>::tick()
     }
 
 
-        if (0 && curTick() > 15270000 && curTick() < 30270000)
+/* TRANSFORMER_TEST
+        if (1 && curTick() > 15270000 && curTick() < 30270000)
         {
                 static int start_drain = 0;
                 if (!start_drain)
@@ -677,7 +678,7 @@ FullO3CPU<Impl>::tick()
                         std::cout << "****TRANSFORM DOWN DONE Core should resume now!" << endl;
                 }
         }
-        if (0 && curTick() > 2*30270000 )
+        if (1 && curTick() > 2*30270000 && curTick() < 152700000)
         {
                 static int start_drain2 = 0;
                 if (!start_drain2)
@@ -701,7 +702,100 @@ FullO3CPU<Impl>::tick()
                 }
         }
 
+        if (1 && curTick() > 152700000 && curTick() < 2*152700000)
+        {
+                static int start_drain3 = 0;
+                if (!start_drain3)
+                {
+                start_drain3 = 1;
+                std::cout << "*****TRANSFORM DOWN2 going to call drain()" << endl;
+                Stats::dump();
+                Stats::reset();
+                drain(drainManager);
+                std::cout << "*****TRANSFORM DONE with drain()" << endl;
+                }
 
+                if (isDrained())
+                {
+                        transform_down_self();
+                        std::cout << "****TRANSFORM DRAINRESUME going to call drainResume" << endl;
+                        drainResume();
+                        Stats::dump();
+                        Stats::reset();
+                        std::cout << "****TRANSFORM DOWN2 DONE Core should resume now!" << endl;
+                }
+        }
+        if (1 && curTick() > 2*152700000 && curTick() < 3*152700000)
+        {
+                static int start_drain4 = 0;
+                if (!start_drain4)
+                {
+                start_drain4 = 1;
+                std::cout << "*****TRANSFORM UP2 going to call drain()" << endl;
+                Stats::dump();
+                Stats::reset();
+                drain(drainManager);
+                std::cout << "*****TRANSFORM DONE with drain()" << endl;
+                }
+
+                if (isDrained())
+                {
+                        transform_up_self();
+                        std::cout << "****TRANSFORM DRAINRESUME going to call drainResume" << endl;
+                        drainResume();
+                        Stats::dump();
+                        Stats::reset();
+                        std::cout << "****TRANSFORM UP2 DONE Core should resume now!" << endl;
+                }
+        }
+
+        if (1 && curTick() > 3*152700000 && curTick() < 4*152700000)
+        {
+                static int start_drain5 = 0;
+                if (!start_drain5)
+                {
+                start_drain5 = 1;
+                std::cout << "*****TRANSFORM DOWN3 going to call drain()" << endl;
+                Stats::dump();
+                Stats::reset();
+                drain(drainManager);
+                std::cout << "*****TRANSFORM DONE with drain()" << endl;
+                }
+
+                if (isDrained())
+                {
+                        transform_down_self();
+                        std::cout << "****TRANSFORM DRAINRESUME going to call drainResume" << endl;
+                        drainResume();
+                        Stats::dump();
+                        Stats::reset();
+                        std::cout << "****TRANSFORM DOWN3 DONE Core should resume now!" << endl;
+                }
+        }
+        if (1 && curTick() > 4*152700000)
+        {
+                static int start_drain6 = 0;
+                if (!start_drain6)
+                {
+                start_drain6 = 1;
+                std::cout << "*****TRANSFORM UP3 going to call drain()" << endl;
+                Stats::dump();
+                Stats::reset();
+                drain(drainManager);
+                std::cout << "*****TRANSFORM DONE with drain()" << endl;
+                }
+
+                if (isDrained())
+                {
+                        transform_up_self();
+                        std::cout << "****TRANSFORM DRAINRESUME going to call drainResume" << endl;
+                        drainResume();
+                        Stats::dump();
+                        Stats::reset();
+                        std::cout << "****TRANSFORM UP3 DONE Core should resume now!" << endl;
+                }
+        }
+TRANSFORMER_TEST*/
         if (1)
         {
                 // if (start_transform_down)

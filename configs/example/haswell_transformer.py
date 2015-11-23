@@ -150,6 +150,7 @@ def build_test_system(np):
     test_sys.dvfs_handler.transition_latency = '40us' 
     test_sys.dvfs_handler.domains =  [test_sys.cpu_clk_domain, test_sys.cpu_clk_domain1, test_sys.cpu_clk_domain2, test_sys.cpu_clk_domain3]
     test_sys.dvfs_handler.enable = 1
+    test_sys.dvfs_handler.transform_enable = 1
 
     if options.kernel is not None:
         test_sys.kernel = binary(options.kernel)
