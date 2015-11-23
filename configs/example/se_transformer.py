@@ -201,8 +201,8 @@ for cpu in system.cpu:
     cpu.lsq_scale_enabled = options.lsq_scale_enabled
     cpu.alu_scale_enabled = options.alu_scale_enabled
     cpu.fpu_scale_enabled = options.fpu_scale_enabled
-    # cpu.dcache_scale_enabled = options.dcache_scale_enabled # INTEGRATION_FIX
-    # cpu.icache_scale_enabled = options.icache_scale_enabled # INTEGRATION_FIX
+    cpu.dcache_scale_enabled = options.dcache_scale_enabled # INTEGRATION_FIX
+    cpu.icache_scale_enabled = options.icache_scale_enabled # INTEGRATION_FIX
 
 if is_kvm_cpu(CPUClass) or is_kvm_cpu(FutureClass):
     if buildEnv['TARGET_ISA'] == 'x86':

@@ -394,6 +394,12 @@ class CacheBlkPrintWrapper : public Printable
     virtual ~CacheBlkPrintWrapper() {}
     void print(std::ostream &o, int verbosity = 0,
                const std::string &prefix = "") const;
+
+    bool operator()(CacheBlk &passedBlk){//lokeshjindal15
+        blk = &passedBlk;
+        print(std::cout);
+        return true;
+    }
 };
 
 /**
@@ -408,7 +414,8 @@ template <typename T, typename BlkType>
 class CacheBlkVisitorWrapper
 {
   public:
-    typedef bool (T::*visitorPtr)(BlkType &blk);
+    typedef bool (T::*visitorPtr)(BlkType &blk);//lokeshjindal15 visitorPtr is keyword that is used to declare a variable. that variable would be used to point to a function
+                                                //that is a member of class T, accepts an argument (a reference to object of type BlkType) and returns a bool
 
     CacheBlkVisitorWrapper(T &_obj, visitorPtr _visitor)
         : obj(_obj), visitor(_visitor) {}

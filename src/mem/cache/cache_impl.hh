@@ -1314,11 +1314,69 @@ Cache<TagStore>::writebackBlk(BlkType *blk)
 
 template<class TagStore>
 void
+Cache<TagStore>::printAllBlks()//lokeshjindal15
+{
+    CacheBlkPrintWrapper printfunctor(NULL);
+    tags->forEachBlk(printfunctor);
+}
+/*
+ * first we will writeback all the dirty blocks that lie in scaled out zone
+ * then we will invlidate all the block that lie in scaled out zone
+ * afterwards we need to restrict the cache from accessing the 
+ * existing scaled out blocks - done by changing the assoc varibale at appropriate places
+ */
+template<class TagStore>
+void
+Cache<TagStore>::scaleCacheDown(unsigned tfScaleFac)//lokeshjindal15
+{
+    std::cout << "cache_impl.hh: ::scaleCacheDown calling memWritebackScaleDown(" << tfScaleFac << ")" << std::endl;
+    memWritebackScaleDown(tfScaleFac);
+    std::cout << "cache_impl.hh: ::scaleCacheDown calling memInvalidateScaleDown(" << tfScaleFac << ")" << std::endl;
+    memInvalidateScaleDown(tfScaleFac);
+    tags->updateAssocDown(tfScaleFac); //TODO FIXME UNCOMMENT
+    tags->updateAssocCachesets();//TODO FIXME UNCOMMENT
+}
+
+/*
+ * first we will invalidate all the block that lie in new scaled in zone
+ * afterwards we need to allow the cache to access the 
+ * newly scaled in blocks - done by changing the assoc varibale at appropriate places
+ */
+template<class TagStore>
+void
+Cache<TagStore>::scaleCacheUp(unsigned tfScaleFac)//lokeshjindal15
+{
+    //memWritebackScaleUp(tfScaleFac);
+    memInvalidateScaleUp(tfScaleFac);
+    tags->updateAssocUp(tfScaleFac);
+    tags->updateAssocCachesets();
+}
+template<class TagStore>
+void
 Cache<TagStore>::memWriteback()
 {
     WrappedBlkVisitor visitor(*this, &Cache<TagStore>::writebackVisitor);
-    tags->forEachBlk(visitor);
+    tags->forEachBlk(visitor);//ADDCODE lokeshjindal15 instead of calling writeback for each cacheblock, neeed to call for blocks that are getting power gated. check if block is dirty or not also implemented within the visitor function.
 }
+
+template<class TagStore>
+void
+Cache<TagStore>::memWritebackScaleDown(unsigned tfScaleFac)
+{
+    WrappedBlkVisitor visitor(*this, &Cache<TagStore>::writebackVisitor);
+    tags->forEachBlkScaleDown(visitor, tfScaleFac);//ADDCODE lokeshjindal15 instead of calling writeback for each cacheblock, neeed to call for blocks that are getting power gated. check if block is dirty or not also implemented within the visitor function.
+}
+
+/*
+ * thisfunction does not make sense - don't need to writeback anything while scaling up
+template<class TagStore>
+void
+Cache<TagStore>::memWritebackScaleUp(unsigned tfScaleFac)
+{
+    WrappedBlkVisitor visitor(*this, &Cache<TagStore>::writebackVisitor);
+    tags->forEachBlkScaleUp(visitor, tfScaleFac);//ADDCODE lokeshjindal15 instead of calling writeback for each cacheblock, neeed to call for blocks that are getting power gated. check if block is dirty or not also implemented within the visitor function.
+}
+*/
 
 template<class TagStore>
 void
@@ -1328,6 +1386,21 @@ Cache<TagStore>::memInvalidate()
     tags->forEachBlk(visitor);
 }
 
+template<class TagStore>
+void
+Cache<TagStore>::memInvalidateScaleDown(unsigned tfScaleFac)
+{
+    WrappedBlkVisitor visitor(*this, &Cache<TagStore>::invalidateVisitor);
+    tags->forEachBlkScaleDown(visitor, tfScaleFac);
+}
+
+template<class TagStore>
+void
+Cache<TagStore>::memInvalidateScaleUp(unsigned tfScaleFac)
+{
+    WrappedBlkVisitor visitor(*this, &Cache<TagStore>::invalidateVisitor);
+    tags->forEachBlkScaleUp(visitor, tfScaleFac);
+}
 template<class TagStore>
 bool
 Cache<TagStore>::isDirty() const

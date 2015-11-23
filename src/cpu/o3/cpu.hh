@@ -767,13 +767,11 @@ public:
 	void transform_up_self();
 
     void copyRenameMaptoCommit(typename CPUPolicy::RenameMap * src_rename_map, typename CPUPolicy::RenameMap * dest_rename_map);
-/*
     void do_something_with_dcache()
     {
         ((Cache<LRU>*)(((getDataPort()).getPeerPort())->getOwner()))->print_cache_message();
         //((((getDataPort()).getPeerPort())->getOwner())).do_something_with_memobject();
     }
-*/
     void scaleL1Ddown();
     Cache<LRU> * getDcachePtr();
     Cache<LRU> * getIcachePtr();

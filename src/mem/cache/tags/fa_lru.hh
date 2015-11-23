@@ -312,6 +312,11 @@ public:
         }
     }
 
+    void do_something_with_lru()//lokeshjindal15
+    {   
+        std::cout << std::endl << "********** LOKESH I am being called from inside FALRU **************" << std::endl << std::endl;
+    }
+
 };
 
 #endif // __MEM_CACHE_TAGS_FA_LRU_HH__

@@ -656,13 +656,13 @@ FullO3CPU<Impl>::tick()
     }
 
 
-        if (1 && curTick() > 15270000 )
+        if (0 && curTick() > 15270000 && curTick() < 30270000)
         {
                 static int start_drain = 0;
                 if (!start_drain)
                 {
                 start_drain = 1;
-                std::cout << "*****TRANSFORM going to call drain()" << endl;
+                std::cout << "*****TRANSFORM DOWN going to call drain()" << endl;
                 Stats::dump();
                 Stats::reset();
                 drain(drainManager);
@@ -676,7 +676,30 @@ FullO3CPU<Impl>::tick()
                         drainResume();
                         Stats::dump();
                         Stats::reset();
-                        std::cout << "****TRANSFORM DONE Core should resume now!" << endl;
+                        std::cout << "****TRANSFORM DOWN DONE Core should resume now!" << endl;
+                }
+        }
+        if (0 && curTick() > 30270000 )
+        {
+                static int start_drain2 = 0;
+                if (!start_drain2)
+                {
+                start_drain2 = 1;
+                std::cout << "*****TRANSFORM UP going to call drain()" << endl;
+                Stats::dump();
+                Stats::reset();
+                drain(drainManager);
+                std::cout << "*****TRANSFORM DONE with drain()" << endl;
+                }
+
+                if (isDrained())
+                {
+                        transform_up_self();
+                        std::cout << "****TRANSFORM DRAINRESUME going to call drainResume" << endl;
+                        drainResume();
+                        Stats::dump();
+                        Stats::reset();
+                        std::cout << "****TRANSFORM UP DONE Core should resume now!" << endl;
                 }
         }
 
@@ -2011,7 +2034,6 @@ INTEGRATION_FIX*/
 
     	commit.takeOverFrom();
 
-/*INTEGRATION_FIX
     //scale down Dcache
     if (dcache_scale_enabled)
     {
@@ -2041,7 +2063,6 @@ INTEGRATION_FIX*/
     //icacheptr->printAllBlks();
     std::cout << icacheptr->tags->print() << std::endl;
     }
-INTEGRATION_FIX*/
 
 }
 
@@ -2159,7 +2180,6 @@ INTEGRATION_FIX*/
 
     	commit.takeOverFrom();
 
-/*INTEGRATION_FIX
     //scale Dcache up
     if (dcache_scale_enabled)
     {
@@ -2189,7 +2209,6 @@ INTEGRATION_FIX*/
     //icacheptr->printAllBlks();
     std::cout << icacheptr->tags->print() << std::endl;
     }
-INTEGRATION_FIX*/
 }
 /*INTEGRATION_FIX
 template <class Impl>
@@ -2225,7 +2244,6 @@ INTEGRATION_FIX*/
 /*function to scale down Dcache
  *
  */
-/*INTEGRATION_FIX
 template <class Impl>
 void
 FullO3CPU<Impl>::scaleL1Ddown()
@@ -2245,6 +2263,5 @@ Cache<LRU>* FullO3CPU<Impl>::getIcachePtr()
 {
     return ((Cache<LRU>*)(((getInstPort()).getPeerPort())->getOwner()));
 }
-INTEGRATION_FIX*/
 // Forward declaration of FullO3CPU.
 template class FullO3CPU<O3CPUImpl>;
