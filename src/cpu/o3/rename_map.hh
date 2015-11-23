@@ -47,6 +47,8 @@
 #include "cpu/o3/regfile.hh"
 #include "cpu/reg_class.hh"
 
+#include "debug/Rename.hh"//lokeshjindal15 adding for debug prints
+
 /**
  * Register rename map for a single class of registers (e.g., integer
  * or floating point).  Because the register class is implicitly
@@ -69,7 +71,9 @@ class SimpleRenameMap
      * Pointer to the free list from which new physical registers
      * should be allocated in rename()
      */
+    public:
     SimpleFreeList *freeList;
+    private:
 
     /**
      * The architectural index of the zero register. This register is
@@ -134,6 +138,15 @@ class SimpleRenameMap
 
     /** Return the number of free entries on the associated free list. */
     unsigned numFreeEntries() const { return freeList->numFreeRegs(); }
+	
+	//Function to print the mapping lokeshjindal15
+	void simple_print_mapping(unsigned);
+	//Function to rename an arch register for restricinng purpose lokeshjindal15
+	//difference from normal rename : since it is creating a new mapping it should add prev phyreg to free list.
+    	 RenameInfo restrict_rename(RegIndex arch_reg);//lokeshjindal15
+    	//compact function to update mapping of a map by subtracting the void created by regs to the left 
+	void compact_regmapping(PhysRegIndex subvalue);//lokeshjindal15
+	void compact_up_regmapping(PhysRegIndex subvalue);//lokeshjindal15
 };
 
 
@@ -204,6 +217,29 @@ class UnifiedRenameMap
         assert(regFile->isIntPhysReg(info.first));
         return info;
     }
+    
+    RenameInfo restrict_renameInt(RegIndex rel_arch_reg)//lokeshjindal15
+    {
+        RenameInfo info = intMap.restrict_rename(rel_arch_reg);
+        assert(regFile->isIntPhysReg(info.first));
+        return info;
+    }
+    
+    RenameInfo restrict_renameFloat(RegIndex rel_arch_reg)//lokeshjindal15
+    {
+        RenameInfo info = floatMap.restrict_rename(rel_arch_reg);
+        assert(regFile->isFloatPhysReg(info.first));
+        return info;
+    }
+
+    RenameInfo restrict_renameCC(RegIndex rel_arch_reg)//lokeshjindal15
+    {
+        RenameInfo info = ccMap.restrict_rename(rel_arch_reg);
+        assert(regFile->isCCPhysReg(info.first));
+        return info;
+    }
+
+
 
     /**
      * Perform rename() on a floating-point register, given a relative
@@ -222,6 +258,8 @@ class UnifiedRenameMap
      */
     RenameInfo renameCC(RegIndex rel_arch_reg)
     {
+        // std::cout << "rename_map.hh : renameCC called with rel_arch_reg: " << rel_arch_reg << std::endl;
+        // ccMap.freeList->printFreeList();
         RenameInfo info = ccMap.rename(rel_arch_reg);
         assert(regFile->isCCPhysReg(info.first));
         return info;
@@ -258,6 +296,7 @@ class UnifiedRenameMap
     PhysRegIndex lookupInt(RegIndex rel_arch_reg) const
     {
         PhysRegIndex phys_reg = intMap.lookup(rel_arch_reg);
+	DPRINTF(Rename, "rename_map.hh lookupInt : rel_arch_reg=%d and phys_reg=%d numIntPhysRegs():%d\n", rel_arch_reg, phys_reg, regFile->numIntPhysRegs());
         assert(regFile->isIntPhysReg(phys_reg));
         return phys_reg;
     }
@@ -272,7 +311,13 @@ class UnifiedRenameMap
         assert(regFile->isFloatPhysReg(phys_reg));
         return phys_reg;
     }
-
+    
+    PhysRegIndex lookupFloat_old(RegIndex rel_arch_reg) const
+    {
+        PhysRegIndex phys_reg = floatMap.lookup(rel_arch_reg);
+        assert(regFile->isFloatPhysReg_old(phys_reg));
+        return phys_reg;
+    }
     /**
      * Perform lookup() on a condition-code register, given a relative
      * condition-code register index.
@@ -281,6 +326,13 @@ class UnifiedRenameMap
     {
         PhysRegIndex phys_reg = ccMap.lookup(rel_arch_reg);
         assert(regFile->isCCPhysReg(phys_reg));
+        return phys_reg;
+    }
+    
+    PhysRegIndex lookupCC_old(RegIndex rel_arch_reg) const
+    {
+        PhysRegIndex phys_reg = ccMap.lookup(rel_arch_reg);
+        assert(regFile->isCCPhysReg_old(phys_reg));
         return phys_reg;
     }
 
@@ -292,7 +344,8 @@ class UnifiedRenameMap
     {
         // misc regs aren't really renamed, just given an index
         // beyond the range of actual physical registers
-        PhysRegIndex phys_reg = rel_arch_reg + regFile->totalNumPhysRegs();
+		//INTEGRATION_FIX PhysRegIndex phys_reg = rel_arch_reg + regFile->totalNumPhysRegs()
+        PhysRegIndex phys_reg = rel_arch_reg + regFile->misc_totalNumPhysRegs();
         return phys_reg;
     }
 
@@ -313,6 +366,7 @@ class UnifiedRenameMap
     void setIntEntry(RegIndex arch_reg, PhysRegIndex phys_reg)
     {
         assert(regFile->isIntPhysReg(phys_reg));
+        DPRINTF(Rename, "LOKESH setIntEntry arch_reg:%d to phys_reg:%d\n", arch_reg, phys_reg);
         intMap.setEntry(arch_reg, phys_reg);
     }
 
@@ -323,6 +377,7 @@ class UnifiedRenameMap
     void setFloatEntry(RegIndex arch_reg, PhysRegIndex phys_reg)
     {
         assert(regFile->isFloatPhysReg(phys_reg));
+        DPRINTF(Rename, "LOKESH setFloatEntry arch_reg:%d to phys_reg:%d\n", arch_reg, phys_reg);
         floatMap.setEntry(arch_reg, phys_reg);
     }
 
@@ -333,6 +388,7 @@ class UnifiedRenameMap
     void setCCEntry(RegIndex arch_reg, PhysRegIndex phys_reg)
     {
         assert(regFile->isCCPhysReg(phys_reg));
+        DPRINTF(Rename, "LOKESH setCCEntry arch_reg:%d to phys_reg:%d\n", arch_reg, phys_reg);
         ccMap.setEntry(arch_reg, phys_reg);
     }
 
@@ -346,6 +402,45 @@ class UnifiedRenameMap
     {
         return std::min(intMap.numFreeEntries(), floatMap.numFreeEntries());
     }
+	
+	//Function to print the rename mapping
+	void unified_print_mapping();
+	//Function to restrict the intreg mapping to valid phy regs after scaling lokeshjindal15
+	void restrict_intreg_mapping(unsigned tf_regfile_scale_factor);//lokeshjindal15
+	//Function to restrict the floatreg mapping lokeshjindal15
+	void restrict_floatreg_mapping(unsigned tf_regfile_scale_factor);//lokeshjindal15
+	//Function to restrict the ccreg mapping lokeshjindal15
+	void restrict_ccreg_mapping(unsigned tf_regfile_scale_factor);//lokeshjindal15
+	//Function to restrict the int/float/cc reg mapping
+	void restrict_archreg_mapping(unsigned int_scale_factor, unsigned float_scale_factor, unsigned cc_scale_factor)//lokeshjindal15
+	{
+		restrict_intreg_mapping(int_scale_factor);
+		restrict_floatreg_mapping(float_scale_factor);
+		restrict_ccreg_mapping(cc_scale_factor);
+	}
+
+	//Function to restrict the intreg mapping to valid phy regs after scaling lokeshjindal15
+	void restrict_up_intreg_mapping(unsigned tf_regfile_scale_factor);//lokeshjindal15
+	//Function to restrict the floatreg mapping lokeshjindal15
+	void restrict_up_floatreg_mapping(unsigned tf_regfile_scale_factor);//lokeshjindal15
+	//Function to restrict the ccreg mapping lokeshjindal15
+	void restrict_up_ccreg_mapping(unsigned tf_regfile_scale_factor);//lokeshjindal15
+	//Function to restrict the int/float/cc reg mapping
+	void restrict_up_archreg_mapping(unsigned int_scale_factor, unsigned float_scale_factor, unsigned cc_scale_factor)//lokeshjindal15
+	{
+		restrict_up_intreg_mapping(int_scale_factor);
+		restrict_up_ccreg_mapping(cc_scale_factor);//CRUCIAL THAT YOU CALL THEM IN OPPOSITE ORDER CC before FLOAT
+		restrict_up_floatreg_mapping(float_scale_factor);
+	}
+	//compacting functions to update the mapping after scaling - left shift due to the void created by regs on the left
+	void compact_regmapping();
+	void compact_up_regmapping();
+
+    PhysRegFile * getregFile()
+    {
+        return regFile;
+    }    
+
 };
 
 #endif //__CPU_O3_RENAME_MAP_HH__

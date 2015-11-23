@@ -76,6 +76,29 @@ class SimpleFreeList
 
     /** True iff there are free registers on the list. */
     bool hasFreeRegs() const { return !freeRegs.empty(); }
+
+	//return a pointer to the freeRegs queue //lokeshjindal15
+	std::queue<PhysRegIndex> * getfreeRegs(){ return &freeRegs;}
+    void printFreeList()
+    {
+        std::cout << "##### FREE LIST START #####" << std::endl;
+        int list_size = freeRegs.size();
+        PhysRegIndex first_reg = -1;
+        for ( int i = 0; i < list_size; i++)
+        {
+            PhysRegIndex reg = freeRegs.front();
+            if (i == 0)
+            {
+                first_reg = reg;
+            }
+            freeRegs.pop();
+            std::cout << ":" << reg << ":" << std::endl;
+            freeRegs.push(reg);
+        }
+        assert( list_size == freeRegs.size());
+        assert( freeRegs.front() == first_reg);
+        std::cout << "##### FREE LIST END #####" << std::endl;
+    } 
 };
 
 
@@ -136,17 +159,23 @@ class UnifiedFreeList
     /** Gives the name of the freelist. */
     std::string name() const { return _name; };
 
+    /** Returns a pointer to the integer free list *///lokeshjindal15
+    SimpleFreeList *getIntList() { return &intList; }
+    
+    /** Returns a pointer to the float free list *///lokeshjindal15
+    SimpleFreeList *getFloatList() { return &floatList; }
+
     /** Returns a pointer to the condition-code free list */
     SimpleFreeList *getCCList() { return &ccList; }
 
     /** Gets a free integer register. */
-    PhysRegIndex getIntReg() { return intList.getReg(); }
+    PhysRegIndex getIntReg() { /*std::cout << "Asking for int reg" << std::endl*/; return intList.getReg(); }
 
     /** Gets a free fp register. */
-    PhysRegIndex getFloatReg() { return floatList.getReg(); }
+    PhysRegIndex getFloatReg() { /*std::cout << "Asking for float reg" << std::endl*/;  return floatList.getReg(); }
 
     /** Gets a free cc register. */
-    PhysRegIndex getCCReg() { return ccList.getReg(); }
+    PhysRegIndex getCCReg() { /*std::cout << "Asking for cc reg" << std::endl*/;  return ccList.getReg(); }
 
     /** Adds a register back to the free list. */
     void addReg(PhysRegIndex freed_reg);
@@ -177,6 +206,22 @@ class UnifiedFreeList
 
     /** Returns the number of free cc registers. */
     unsigned numFreeCCRegs() const { return ccList.numFreeRegs(); }
+
+    //print number of free list entries lokeshjindal15
+    void print_entries()
+    {
+	    std::cout << std::endl;
+	    std::cout << "FREELIST ENTRIES: numFreeIntRegs:" << numFreeIntRegs() << " numFreeFloatRegs:" << numFreeFloatRegs() << " numFreeCCRegs:" << numFreeCCRegs() << std::endl;
+        std::cout << "***** Printing INT FREELIST" << std::endl;
+	    /*
+             * intList.printFreeList();
+	    std::cout << "***** Printing FLOAT FREELIST" << std::endl;
+	    floatList.printFreeList();
+	    std::cout << "***** Printing CC FREELIST" << std::endl;
+	    ccList.printFreeList();
+    	    std::cout << std::endl;
+            */
+    }
 };
 
 inline void

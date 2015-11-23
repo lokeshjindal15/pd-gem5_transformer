@@ -156,6 +156,18 @@ class Scoreboard
 
         regScoreBoard[reg_idx] = false;
     }
+	void updatenumPhysRegs(unsigned numphysregs)
+        {
+                numPhysRegs = numphysregs;
+        }
+
+	void reset_scoreboard()
+	{
+		for (int i = 0; i < regScoreBoard.size(); i++)
+		{
+			regScoreBoard[i] = true;
+		}
+	}
 
 };
 

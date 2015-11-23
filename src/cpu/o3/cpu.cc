@@ -601,11 +601,9 @@ FullO3CPU<Impl>::tick()
     if (print_once == 0)
     {
         print_once = 1;
-        /*INTEGRATION_FIX
         do_something_with_dcache();
         iew.fuPool->dump();
         iew.fuPool->dump_fuPerCapList();
-        INTEGRATION_FIX*/
     }
 
 
@@ -679,7 +677,7 @@ FullO3CPU<Impl>::tick()
                         std::cout << "****TRANSFORM DOWN DONE Core should resume now!" << endl;
                 }
         }
-        if (0 && curTick() > 30270000 )
+        if (0 && curTick() > 2*30270000 )
         {
                 static int start_drain2 = 0;
                 if (!start_drain2)
@@ -1940,7 +1938,6 @@ FullO3CPU<Impl>::transform_down_self()
  	std::cout << "*****TRANSFORM DONE calling scale_IQ newIQentries:" << iew.instQueue.getnumEntries() << endl;
     }
 
-/*INTEGRATION_FIX 	
     if (regfile_scale_enabled)
     {
  	regFile.print_params();
@@ -1984,7 +1981,6 @@ FullO3CPU<Impl>::transform_down_self()
 	//reset the scoreboard entries
 	scoreboard.reset_scoreboard();	
     }
-INTEGRATION_FIX*/
     if (rob_scale_enabled)
     {
  	std::cout << "*****TRANSFORM calling scale_rob" << endl;
@@ -2096,7 +2092,6 @@ FullO3CPU<Impl>::transform_up_self()
  	std::cout << "*****TRANSFORM_UP DONE calling scale_up_IQ newIQentries:" << iew.instQueue.getnumEntries() << " newFreeEntries:" << iew.instQueue.numFreeEntries() << endl;
     }
 
-/*INTEGRATION_FIX 	
     if (regfile_scale_enabled)
     {
  	regFile.print_params();
@@ -2140,7 +2135,6 @@ FullO3CPU<Impl>::transform_up_self()
 	//reset the scoreboard entries
 	scoreboard.reset_scoreboard();	
     }
-INTEGRATION_FIX*/
     if (rob_scale_enabled)
     {
 	std::cout << "*****TRANSFORM_UP calling scale_up_rob" << endl;
@@ -2210,7 +2204,6 @@ INTEGRATION_FIX*/
     std::cout << icacheptr->tags->print() << std::endl;
     }
 }
-/*INTEGRATION_FIX
 template <class Impl>
 void
 FullO3CPU<Impl>::copyRenameMaptoCommit(typename CPUPolicy::RenameMap * src_rename_map, typename CPUPolicy::RenameMap * dest_rename_map)
@@ -2239,7 +2232,6 @@ FullO3CPU<Impl>::copyRenameMaptoCommit(typename CPUPolicy::RenameMap * src_renam
         dest_rename_map->setCCEntry(i, phy);
     }
 }
-INTEGRATION_FIX*/
 
 /*function to scale down Dcache
  *

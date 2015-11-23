@@ -194,14 +194,14 @@ EnergyCtrl::write(PacketPtr pkt)
         break;
       case PERF_LEVEL:
 
-        //lokeshjindal15 TODO FIXME override with perf_level = 6 (800MHz) if asked for a lower frequency        
+        //lokeshjindal15 TODO FIXME override with perf_level = 10 (1500MHz) if asked for a lower frequency        
         assert( static_cast<int>(data) >= 0);
         std::cout << "DEBUG: domainID: " << domainID << " dvfsHandler->perfLevel(domainID): " << dvfsHandler->perfLevel(domainID) << " data: " << static_cast<int>(data) << " diff: " << (static_cast<int>(dvfsHandler->perfLevel(domainID)) - static_cast<int>(data)) << std::endl;
 	if (dvfsHandler->transform_enable == true)
 	{
 	    // ((O3ThreadContext<O3CPUImpl> *)(esys->threadContexts[domainID]))->cpu->old_cpu_big0_LITTLE1 = ((O3ThreadContext<O3CPUImpl> *)(esys->threadContexts[domainID]))->cpu->cur_cpu_big0_LITTLE1;
             // std::cout << "dvfsHandler->transform_enable is true" << std::endl;
-	    if ((static_cast<int>(data) > 6) && ((static_cast<int>(dvfsHandler->perfLevel(domainID)) - static_cast<int>(data)) < 0)) // 6 == 0.8 GHz min freq of big core | we want to transform down only if we are decreasing frequency i.e. increasing perf level number
+	    if ((static_cast<int>(data) > 10) && ((static_cast<int>(dvfsHandler->perfLevel(domainID)) - static_cast<int>(data)) < 0)) // 10 == 1.5 GHz min freq of big core | we want to transform down only if we are decreasing frequency i.e. increasing perf level number
             {           
             	std::cout << "ENERGY_CTRL TRANSFORM_DOWN : for CPU:" << domainID << " changing perf_level/data to" << static_cast<int>(data) << std::endl;  
 	    	//assert(esys->activeCpus.size() >= domainID);
@@ -259,8 +259,8 @@ EnergyCtrl::write(PacketPtr pkt)
 	    		}
 	    		else
 	    		{
-            		    std::cout << "at tick: " << curTick() << " ENERGY_CTRL TRANSFORM_UP : for CPU:" << domainID << " setting transforming_up to 1 and setting data from " << static_cast<int>(data) << " to " << 6 << std::endl;  
-                            data = 6;
+            		    std::cout << "at tick: " << curTick() << " ENERGY_CTRL TRANSFORM_UP : for CPU:" << domainID << " setting transforming_up to 1 and setting data from " << static_cast<int>(data) << " to " << 10 << std::endl;  
+                            data = 10;
 	    		    assert((((O3ThreadContext<O3CPUImpl> *)(esys->threadContexts[domainID]))->cpu->transforming_up) == 0);
 	    		    ((O3ThreadContext<O3CPUImpl> *)(esys->threadContexts[domainID]))->cpu->transforming_up = 1;
 	    		    ((O3ThreadContext<O3CPUImpl> *)(esys->threadContexts[domainID]))->cpu->drain(((O3ThreadContext<O3CPUImpl> *)(esys->threadContexts[domainID]))->cpu->drainManager);
